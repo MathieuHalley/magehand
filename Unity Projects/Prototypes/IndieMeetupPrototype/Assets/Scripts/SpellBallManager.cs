@@ -1,115 +1,142 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class SpellBallManager : ElementContainer 
+public class SpellBallManager : ElementContainer, IMergable<GameObject>
 {
-	public float speed;
-	public GameObject spellTransitPrefab;
-	public GameObject spellImpactPrefab;
-	public SpellPaletteManager spellPalette;
+	public event System.Action<GameObject, GameObject> MergeBegin;
+	public event System.Action<GameObject, GameObject, GameObject, bool> MergeComplete;
+	public event System.Action<GameObject, GameObject> MoveToBegin;
+	public event System.Action<GameObject, GameObject> MoveToComplete;
 
-	private GameObject spellTransitGO;
-	private GameObject spellImpactGO;
-	private Vector3 MoveTarget;
+	public float driftSpeed;
+	public float moveSpeed;
 
-	public bool movingState = false;
-	public bool dragState = false;
-
-	public void Update()
+	public override void OnEnable()
 	{
-		if (dragState == true && Input.GetMouseButtonUp(0))
-			EndBallDrag();
+		base.OnEnable();
+		MergeBegin += OnMergeBegin;
+		MergeComplete += OnMergeComplete;
+
+		MoveToBegin += OnMoveToBegin;
+		MoveToComplete += OnMoveToComplete;
 	}
 
-	public void OnMouseDown()
+	public void OnDisable()
 	{
-		StartBallDrag();
+		MergeBegin -= OnMergeBegin;
+		MergeComplete -= OnMergeComplete;
+
+		MoveToBegin -= OnMoveToBegin;
+		MoveToComplete -= OnMoveToComplete;
 	}
 
-	public void StartBallDrag()
+	//	Merge this Spell Ball with spellBall
+	public GameObject Merge(GameObject spellBall2)
 	{
-		Debug.Log("MouseDown");
-		dragState = true;
+		Vector3 mergePosition = (this.transform.position
+					           + spellBall2.transform.position) * 0.5f;
+
+		return Merge(spellBall2, mergePosition);
 	}
 
-	public void EndBallDrag()
+	//	Merge this Spell Ball with spellBall at mergePosition
+	public GameObject Merge(GameObject spellBall2, Vector3 mergePosition)
 	{
-		Collider2D dragEndPoint;
-		string layerName;
-		dragState = false;
+		GameObject newSpellBall = null;
+		GameObject spellBall1;
+		ElementProperties newProperties;
 
-		dragEndPoint = 
-			Physics2D.OverlapPoint(Util.MouseWorldPosition, 
-				~(LayerMask.NameToLayer("Spell Palette") |
-				  LayerMask.NameToLayer("Spell Ball")));
-		if (dragEndPoint == null)
+		SpellBallManager spellBallManager1;
+		SpellBallManager spellBallManager2;
+
+		spellBall1 = this.gameObject;
+		spellBallManager1 = this;
+		spellBallManager2 = spellBall2.GetComponent<SpellBallManager>();
+
+		spellBallManager1.MergeBegin(spellBall1, spellBall2);
+//		spellBallManager2.MergeBegin(spellBall2, spellBall1);
+
+		newProperties = ElementProperties.Merge(spellBallManager1.Properties,
+												spellBallManager2.Properties);
+
+		if (newProperties.IsValid)
 		{
-			layerName = "";
+			newSpellBall = NewSpellBall(newProperties);
+			newSpellBall = (GameObject)Instantiate(newSpellBall,
+												   mergePosition,
+												   Quaternion.identity);
+			newSpellBall.SetActive(false);
+
+			StartCoroutine(spellBallManager1.MoveTo(newSpellBall, true));
+			StartCoroutine(spellBallManager2.MoveTo(newSpellBall, true));
+
+			spellBallManager1.MergeComplete(spellBall1, spellBall2, newSpellBall, true);
 		}
 		else
 		{
-			layerName = LayerMask.LayerToName(dragEndPoint.gameObject.layer);
+			newSpellBall = null;
+			spellBallManager1.MergeComplete(spellBall1, spellBall2, null, true);
 		}
-		Debug.Log("DragEndPoint: " + dragEndPoint.name);
 
-		switch (layerName)
-		{
-			case "Spell Palette":
-				TransferSpellBall(dragEndPoint);
-				break;
-			case "Spell Ball":
-				MergeSpellBalls(dragEndPoint);
-				break;
-			default:
-				break;
-		}
+		return newSpellBall;
 	}
 
-	public void TransferSpellBall(Collider2D newSpellPaletteCollider)
+	public bool ValidMerge(GameObject spellBall)
+	{		
+		return ElementProperties
+			   .ValidMerge(this.Properties,
+		                   spellBall
+		                   .GetComponent<SpellBallManager>()
+		                   .Properties);
+	}
+
+	public void OnMergeBegin(GameObject spellBall1, GameObject spellBall2)
 	{
-		spellPalette.RemoveSpellBall(this.gameObject);
-		newSpellPaletteCollider.GetComponent<SpellPaletteManager>().AddSpellBall(this.gameObject, false);
-		StartCoroutine(MoveTo(Util.MouseWorldPosition, false));
 	}
 
-	public void MergeSpellBalls(Collider2D mergeTargetCollider)
+	public void OnMergeComplete(GameObject spellBall1, GameObject spellBall2, GameObject mergedSpellBall, bool validSpellBall)
 	{
-		GameObject spellBall2 = mergeTargetCollider.gameObject;
 
-		if (spellPalette != spellBall2.GetComponent<SpellBallManager>().spellPalette)
-		{
-			Debug.Log("Merge fail different spellPalettes");
-			return;
-		}
-
-		Debug.Log("MergeSpellBalls");
-		StartCoroutine(spellPalette.MergeSpellBalls(this.gameObject, spellBall2));
 	}
-	
+
+	public static GameObject NewSpellBall(ElementProperties elementProperties)
+	{
+		return PrefabHandler.Instance.SpellBallPrefabs(elementProperties);
+	}
+
 	public override string UpdateName()
 	{
 		name = base.UpdateName() + " - Spell Ball";
 		return name;
 	}
 
-	public IEnumerator MoveTo(Vector3 target, bool accelerate = false)
+	public IEnumerator MoveTo(GameObject targetObject, bool accelerate = false)
 	{
 		float sqrDist;
 		float accel;
 
-		movingState = true;
+		MoveToBegin(this.gameObject, targetObject);
 
-		while (this.transform.position != target && this != null)
+		while (this.transform.position != targetObject.transform.position && this != null)
 		{
-			sqrDist = Mathf.Pow((this.transform.position - target).magnitude, 2);
+			sqrDist = Mathf.Pow((this.transform.position - targetObject.transform.position).magnitude, 2);
 			if (accelerate == true)
 				accel = 10.0f * ((Properties.Level * Properties.Level) / sqrDist);
 			else
 				accel = 0;
-//			this.GetComponent<Rigidbody2D>().MovePosition(Vector3.MoveTowards(this.transform.position, target, (speed + accel) * Time.deltaTime));
-			this.transform.position = Vector3.MoveTowards(this.transform.position, target, (speed + accel) * Time.deltaTime);
+//			this
+//			.GetComponent<Rigidbody2D>()
+//			.MovePosition(Vector3.MoveTowards(this.transform.position, 
+//			                                  targetObject.transform.position, 
+//			                                  (speed + accel) * Time.deltaTime));
+			this.transform.position = Vector3.MoveTowards(this.transform.position, 
+				                                          targetObject.transform.position, 
+														  (moveSpeed + accel) * Time.deltaTime);
 			yield return null;
 		}
-		movingState = false;
+		MoveToComplete(this.gameObject, targetObject);
 	}
+
+	public void OnMoveToBegin(GameObject spellBall, GameObject target) { }
+	public void OnMoveToComplete(GameObject spellBall, GameObject target) { }
 }

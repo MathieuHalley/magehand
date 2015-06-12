@@ -1,7 +1,27 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class Util : MonoBehaviour {
+public class Util : MonoBehaviour 
+{
+	public static Util Instance { get; private set; }
+
+	public void Awake()
+	{
+		if (Instance != null && Instance != this)
+			Destroy(gameObject);
+		Instance = this;
+		DontDestroyOnLoad(gameObject);
+	}
+
+	IEnumerator Perform(IEnumerator coroutine)
+	{
+		yield return StartCoroutine(coroutine);
+	}
+
+	static public void DoCoroutine(IEnumerator coroutine)
+	{
+		Instance.StartCoroutine(Instance.Perform(coroutine));
+	}
 
 	public static Vector3 MouseWorldPosition
 	{

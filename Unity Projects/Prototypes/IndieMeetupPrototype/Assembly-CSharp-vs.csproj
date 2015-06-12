@@ -49,11 +49,14 @@
      <Compile Include="Assets\Scripts\ElementContainer.cs" />
      <Compile Include="Assets\Scripts\ElementProperties.cs" />
      <Compile Include="Assets\Scripts\ElementSourceManager.cs" />
-     <Compile Include="Assets\Scripts\ElementType.cs" />
-     <Compile Include="Assets\Scripts\IElementContainer.cs" />
+     <Compile Include="Assets\Scripts\Interfaces\IElementContainer.cs" />
+     <Compile Include="Assets\Scripts\Interfaces\IGameState.cs" />
+     <Compile Include="Assets\Scripts\Interfaces\IGameStateManager.cs" />
+     <Compile Include="Assets\Scripts\Interfaces\IMergable.cs" />
      <Compile Include="Assets\Scripts\SpellBallManager.cs" />
-     <Compile Include="Assets\Scripts\SpellPaletteManager.cs" />
      <Compile Include="Assets\Scripts\Util.cs" />
+     <Compile Include="Assets\Scripts\_Old\PrefabHandler.cs" />
+     <Compile Include="Assets\Scripts\_Old\SpellPaletteManager.cs" />
  <Reference Include="UnityEngine.UI">
  <HintPath>C:/Program Files/Unity/Editor/Data/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>
  </Reference>

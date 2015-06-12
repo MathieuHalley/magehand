@@ -14,7 +14,7 @@ public class ElementPropertiesDrawer : PropertyDrawer {
 		SerializedProperty elementProp;
 		SerializedProperty levelProp;
 
-		elementProp = property.FindPropertyRelative("_element").FindPropertyRelative("_element");
+		elementProp = property.FindPropertyRelative("_element");
 		levelProp = property.FindPropertyRelative("_level");
 
 		EditorGUI.BeginProperty(position, label, property);

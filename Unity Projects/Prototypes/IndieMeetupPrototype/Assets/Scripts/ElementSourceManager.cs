@@ -3,6 +3,12 @@ using System.Collections;
 
 public class ElementSourceManager : ElementContainer
 {
+	public event System.Action<ElementSourceManager> ElementSourceReset;
+	public event System.Action<ElementSourceManager> BallUpdate;
+	public event System.Action<ElementSourceManager, ElementProperties> BallHarvested;
+	public event System.Action<ElementSourceManager> HarvestBegin;
+	public event System.Action<ElementSourceManager> HarvestComplete;
+
 	private bool harvestState;
 	private float harvestClock;
 	private int harvestCount;
@@ -11,14 +17,10 @@ public class ElementSourceManager : ElementContainer
 	public int ballsAvailable;
 	public bool Empty { get { return (curLevel == 0) ? true : false; } }
 
-	public SpellPaletteManager spellPalette;
-
 	public float timeToHarvestBall = 1f;
 
 	void Start()
 	{
-
-		spellPalette.autoMerge = true;
 		StartElementHarvest();
 	}
 
@@ -42,18 +44,10 @@ public class ElementSourceManager : ElementContainer
 		Reset();
 	}
 
-	void OnMouseDown()
-	{
-		//		StartElementHarvest();
-	}
-
-	void OnMouseUp()
-	{
-		//		EndElementHarvest();
-	}
-
 	public void Reset()
 	{
+		if (Application.isPlaying)
+			ElementSourceReset(this);
 		curLevel = _properties.Level;
 		ResetBallsAvailable();
 	}
@@ -61,6 +55,8 @@ public class ElementSourceManager : ElementContainer
 	public void ResetBallsAvailable()
 	{
 		ballsAvailable = (int)(Mathf.Pow(curLevel, 2) * 0.5f);
+		if (Application.isPlaying)
+			BallUpdate(this);
 	}
 
 	public override string UpdateName()
@@ -72,6 +68,7 @@ public class ElementSourceManager : ElementContainer
 	#region ElementHarvest
 	public void StartElementHarvest()
 	{
+		HarvestBegin(this);
 		harvestState = true;
 		harvestClock = 0f;
 		harvestCount = 0;
@@ -79,6 +76,7 @@ public class ElementSourceManager : ElementContainer
 
 	public void EndElementHarvest()
 	{
+		HarvestComplete(this);
 		harvestState = false;
 		harvestClock = 0f;
 		harvestCount = 0;
@@ -95,9 +93,10 @@ public class ElementSourceManager : ElementContainer
 			harvestClock -= timeToHarvestBall;
 			if (HarvestBall())
 			{
+				BallUpdate(this);
+				BallHarvested(this, new ElementProperties(Properties.Element,1));
 				++harvestCount;
-				spellPalette.AddSpellBall(new ElementProperties(Properties.Element, 1));
-				spellPalette.FindAndMergeAllValidPairs();
+//				spellPalette.FindAndMergeAllValidPairs();
 			}
 		}
 
