@@ -1,15 +1,10 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class HandCollection : CardCollection, IInteractable
+public class HandCollection : CardCollection, IInputInteractionEvents, IObjectInteractionEvents
 {
-	public int initialCardCount = 6;
-	public bool initialFaceUp = true;
-
-	private Vector3 initPos;
-	private bool dragged;
-
 	#region Events
+	//	Input Interaction Events
 	public event System.Action<GameObject> MouseDownEvent;
 	public event System.Action<GameObject> MouseDragEvent;
 	public event System.Action<GameObject> MouseEnterEvent;
@@ -17,145 +12,201 @@ public class HandCollection : CardCollection, IInteractable
 	public event System.Action<GameObject> MouseOverEvent;
 	public event System.Action<GameObject> MouseUpAsAButtonEvent;
 	public event System.Action<GameObject> MouseUpEvent;
+	//	Object Interaction Events
+	public event System.Action<GameObject, Collider2D> TriggerEnter2DEvent;
+	public event System.Action<GameObject, Collider2D> TriggerExit2DEvent;
+	public event System.Action<GameObject, Collider2D> TriggerStay2DEvent;
 
+	#region Input Interaction Events
 	protected virtual void OnMouseDownEvent(GameObject cardGameObject)
 	{
-		Debug.Log("OnMouseDownEvent " + cardGameObject.name);
-		initPos = cardGameObject.transform.position;
+		System.Action<GameObject> mDownEvent = MouseDownEvent;
 
-		if (MouseDownEvent != null)
-			MouseDownEvent(cardGameObject);
+		if (mDownEvent != null)
+			mDownEvent(cardGameObject);
 	}
 
 	protected virtual void OnMouseDragEvent(GameObject cardGameObject)
 	{
-		dragged = true;
-		cardGameObject.transform.position =
-			Camera.main
-			.ScreenToWorldPoint(new Vector3(Input.mousePosition.x,
-											Input.mousePosition.y,
-											Mathf.Abs(Camera.main.transform.position.z)));
+		System.Action<GameObject> mDragEvent = MouseDragEvent;
 
-		if (MouseDragEvent != null)
-			MouseDragEvent(cardGameObject);
+		if (mDragEvent != null)
+			mDragEvent(cardGameObject);
 	}
 
 	protected virtual void OnMouseEnterEvent(GameObject cardGameObject)
 	{
-		if (MouseEnterEvent != null)
-			MouseEnterEvent(cardGameObject);
+		System.Action<GameObject> mEnterEvent = MouseEnterEvent;
+
+		if (mEnterEvent != null)
+			mEnterEvent(cardGameObject);
 	}
 
 	protected virtual void OnMouseExitEvent(GameObject cardGameObject)
 	{
-		if (MouseExitEvent != null)
-			MouseExitEvent(cardGameObject);
+		System.Action<GameObject> mExitEvent = MouseExitEvent;
+
+		if (mExitEvent != null)
+			mExitEvent(cardGameObject);
 	}
 
 	protected virtual void OnMouseOverEvent(GameObject cardGameObject)
 	{
-		if (MouseOverEvent != null)
-			MouseOverEvent(cardGameObject);
+		System.Action<GameObject> mOverEvent = MouseOverEvent;
+
+		if (mOverEvent != null)
+			mOverEvent(cardGameObject);
 	}
 
 	protected virtual void OnMouseUpAsAButtonEvent(GameObject cardGameObject)
 	{
-		if (MouseUpAsAButtonEvent != null)
-			MouseUpAsAButtonEvent(cardGameObject);
+		System.Action<GameObject> mUpAsButtonEvent = MouseUpAsAButtonEvent;
+
+		if (mUpAsButtonEvent != null)
+			mUpAsButtonEvent(cardGameObject);
 	}
 
 	protected virtual void OnMouseUpEvent(GameObject cardGameObject)
 	{
-		if (dragged == true)
-		{
-			cardGameObject.transform.position = initPos;
-			dragged = false;
-		}
-		initPos = this.transform.position;
+		System.Action<GameObject> mUpEvent = MouseUpEvent;
 
-		if (MouseUpEvent != null)
-			MouseUpEvent(cardGameObject);
+		if (mUpEvent != null)
+			mUpEvent(cardGameObject);
 	}
 	#endregion
-
-	public void Start()
+	#region Object Interaction Events
+	protected void OnTriggerEnter2DEvent(GameObject cardGameObject, Collider2D other)
 	{
-		for (int i = _cards.Count; i < initialCardCount; ++i)
-		{
-			AddNewRandomCard(initialFaceUp);
-		}
+		System.Action<GameObject, Collider2D> tEnter2DEvent = TriggerEnter2DEvent;
 
-		for (int i = 0; i < _cards.Count; ++i)
+		if (tEnter2DEvent != null)
+			tEnter2DEvent(cardGameObject, other);
+	}
+
+	protected void OnTriggerExit2DEvent(GameObject cardGameObject, Collider2D other)
+	{
+		System.Action<GameObject, Collider2D> tExit2DEvent = TriggerExit2DEvent;
+
+		if (tExit2DEvent != null)
+			tExit2DEvent(cardGameObject, other);
+	}
+
+	protected void OnTriggerStay2DEvent(GameObject cardGameObject, Collider2D other)
+	{
+		System.Action<GameObject, Collider2D> tStay2DEvent = TriggerStay2DEvent;
+
+		if (tStay2DEvent != null)
+			tStay2DEvent(cardGameObject, other);
+	}
+	#endregion
+	#endregion
+
+	public override void PositionCards()
+	{
+		for (int i = 0; i < Cards.Count; ++i)
 		{
-			_cards[i].transform.position
-				= this.transform.position
-				+ new Vector3((i + 0.5f - _cards.Count * 0.5f) * 1.5f, 0f);
+			Cards[i].transform.position = this.transform.position;
+
+			Cards[i].transform.position +=
+					new Vector3((i + 0.5f - Cards.Count * 0.5f) * 1.25f, 0f);
+
+			Cards[i].transform.position +=
+					new Vector3(Random.Range(-0.05f, 0.05f),
+								Random.Range(-0.05f, 0.05f));
 		}
 	}
 
+	/// <summary>
+	///		AddCard - Add a Card to the CardCollection
+	/// </summary>
+	/// <param name="cardGameObject">The GameObject of the Card Component to be added</param>
+	/// <param name="faceUp">Whether the Card is face-up or face-down</param>
+	/// <returns>The added Card</returns>
 	public override Card AddCard(GameObject cardGameObject, bool faceUp = true)
 	{
-		Card card;
-
-		card = base.AddCard(cardGameObject,faceUp);
-		SubscribeToInteractionEvents(card.gameObject);
+		Card card = base.AddCard(cardGameObject,faceUp);
+		SubscribeToInteractionEvents(card);
+		PositionCards();
 
 		return card;
 	}
 
+	/// <summary>
+	///		AddCard - Add a Card to the CardCollection
+	/// </summary>
+	/// <param name="cardGameObject">The Card to be added</param>
+	/// <param name="faceUp">Whether the Card is face-up or face-down</param>
+	/// <returns>The added Card</returns>
 	public override Card AddCard(Card card, bool faceUp = true)
 	{
 		base.AddCard(card,faceUp);
-		SubscribeToInteractionEvents(card.gameObject);
+		PositionCards();
+		SubscribeToInteractionEvents(card);
 
 		return card;
 	}
 
+	/// <summary>
+	///		AddNewCard - Add a new Card to the CardCollection of a specific element
+	/// </summary>
+	/// <param name="element">The element of the new Card</param>
+	/// <param name="faceUp">Whether the Card is face-up or face-down</param>
+	/// <returns>The new added Card</returns>
 	public override Card AddNewCard(Elements element, bool faceUp = true)
 	{
-		Card card;
-
-		card = base.AddNewCard(element,faceUp);
-		SubscribeToInteractionEvents(card.gameObject);
+		Card card = base.AddNewCard(element,faceUp);
+		PositionCards();
+		SubscribeToInteractionEvents(card);
 
 		return card;
 	}
 
+	/// <summary>
+	///		AddNewRandomCard - Add a new card of a random element to the CardCollection
+	/// </summary>
+	/// <param name="faceUp">Whether the Card is face-up or face-down</param>
+	/// <returns>The new added Card</returns>
 	public override Card AddNewRandomCard(bool faceUp = true)
 	{
-		Card card;
-
-		card = base.AddNewRandomCard(faceUp);
-		SubscribeToInteractionEvents(card.gameObject);
+		Card card = base.AddNewRandomCard(faceUp);
+		PositionCards();
+		SubscribeToInteractionEvents(card);
 
 		return card;
 	}
 
+	/// <summary>
+	///		RemoveCard - Remove a specific Card from the CardCollection
+	/// </summary>
+	/// <param name="cardGameObject">The GameObject of the Card Component to be removed</param>
+	/// <returns>The removed Card</returns>
 	public override Card RemoveCard(GameObject cardGameObject)
 	{
-		Card removedCard;
-		
-		removedCard = base.RemoveCard(cardGameObject);
-		UnsubscribeFromInteractionEvents(removedCard.gameObject);
+		Card removedCard = base.RemoveCard(cardGameObject);
+		PositionCards();
+		UnsubscribeFromInteractionEvents(removedCard);
 
 		return removedCard;
 	}
 
+	/// <summary>
+	///		RemoveCard - Remove a specific Card from the CardCollection
+	/// </summary>
+	/// <param name="cardGameObject">The Card to be removed</param>
+	/// <returns>The removed Card</returns>
 	public override Card RemoveCard(Card card)
 	{
-		Card removedCard;
-
-		removedCard = base.RemoveCard(card);
-		UnsubscribeFromInteractionEvents(removedCard.gameObject);
+		Card removedCard = base.RemoveCard(card);
+		PositionCards();
+		UnsubscribeFromInteractionEvents(removedCard);
 
 		return removedCard;
 	}
 
-	public void SubscribeToInteractionEvents(GameObject cardGameObject)
+	public void SubscribeToInteractionEvents(Card card)
 	{
-		Card card = cardGameObject.GetComponent<Card>();
-
-		Debug.Log("SubscribeToInteractionEvents " + cardGameObject.name);
+		//Debug.Log("SubscribeToInteractionEvents " + card.name);
+		//Input Interaction Events
 		card.MouseDownEvent += OnMouseDownEvent;
 		card.MouseDragEvent += OnMouseDragEvent;
 		card.MouseEnterEvent += OnMouseEnterEvent;
@@ -163,12 +214,16 @@ public class HandCollection : CardCollection, IInteractable
 		card.MouseOverEvent += OnMouseOverEvent;
 		card.MouseUpAsAButtonEvent += OnMouseUpAsAButtonEvent;
 		card.MouseUpEvent += OnMouseUpEvent;
+		//Object Interaction Events
+		card.TriggerEnter2DEvent += OnTriggerEnter2DEvent;
+		card.TriggerExit2DEvent += OnTriggerExit2DEvent;
+		card.TriggerStay2DEvent += OnTriggerStay2DEvent;
 	}
 
-	public void UnsubscribeFromInteractionEvents(GameObject cardGameObject)
+	public void UnsubscribeFromInteractionEvents(Card card)
 	{
-		Card card = cardGameObject.GetComponent<Card>();
-
+		//Debug.Log("UnsubscribeFromInteractionEvents " + card.gameObject.name);
+		//Input Interaction Events
 		card.MouseDownEvent -= OnMouseDownEvent;
 		card.MouseDragEvent -= OnMouseDragEvent;
 		card.MouseEnterEvent -= OnMouseEnterEvent;
@@ -176,5 +231,9 @@ public class HandCollection : CardCollection, IInteractable
 		card.MouseOverEvent -= OnMouseOverEvent;
 		card.MouseUpAsAButtonEvent -= OnMouseUpAsAButtonEvent;
 		card.MouseUpEvent -= OnMouseUpEvent;
+		//Object Interaction Events
+		card.TriggerEnter2DEvent -= OnTriggerEnter2DEvent;
+		card.TriggerExit2DEvent -= OnTriggerExit2DEvent;
+		card.TriggerStay2DEvent -= OnTriggerStay2DEvent;
 	}
 }

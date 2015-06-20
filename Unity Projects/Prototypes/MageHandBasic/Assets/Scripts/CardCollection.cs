@@ -20,35 +20,98 @@ public class CardCollection : MonoBehaviour, ICardCollection, ICardCollectionEve
 
 	protected virtual void OnAddCardEvent(Card card) 
 	{
-		if (AddCardEvent != null)
-			AddCardEvent(card);
+		System.Action<Card> aCardEvent = AddCardEvent;
+
+		if (aCardEvent != null)
+			aCardEvent(card);
 	}
 
 	protected virtual void OnRemoveCardEvent(Card card) 
 	{
-		if (RemoveCardEvent != null)
-			RemoveCardEvent(card);
+		System.Action<Card> rCardEvent = RemoveCardEvent;
+
+		if (rCardEvent != null)
+			rCardEvent(card);
 	}
 
 	protected virtual void OnGetCardEvent(Card card) 
 	{
-		if (GetCardEvent != null)
-			GetCardEvent(card);
+		System.Action<Card> gCardEvent = GetCardEvent;
+
+		if (gCardEvent != null)
+			gCardEvent(card);
 	}
 	#endregion
 
 	public void OnEnable()
 	{
-		AddCardEvent += OnAddCardEvent;
-		RemoveCardEvent += OnRemoveCardEvent;
-		GetCardEvent += OnGetCardEvent;
+		AddCardEvent += DisableCollectionBaseTrigger;
+		RemoveCardEvent += EnableCollectionBaseTrigger;
 	}
 
 	public void OnDisable()
 	{
-		AddCardEvent -= OnAddCardEvent;
-		RemoveCardEvent -= OnRemoveCardEvent;
-		GetCardEvent -= OnGetCardEvent;
+		AddCardEvent -= DisableCollectionBaseTrigger;
+		RemoveCardEvent -= EnableCollectionBaseTrigger;
+	}
+
+	public bool CardIsInCollection(Card card)
+	{
+		for (int i = 0; i < _cards.Count; ++i)
+		{
+			if (card.gameObject == _cards[i].gameObject)
+				return true;
+		}
+		return false;
+	}
+
+	public bool CardIsInCollection(GameObject cardGameObject)
+	{
+		for (int i = 0; i < _cards.Count; ++i)
+		{
+			if (cardGameObject == _cards[i].gameObject)
+				return true;
+		}
+		return false;
+	}
+
+	public virtual void PositionCards()
+	{
+		for (int i = 0; i < _cards.Count; ++i)
+		{
+			_cards[i].transform.localPosition =
+			new Vector3(0, 0, (_cards.Count - i) * 0.1f);
+		}
+	}
+
+	private void EnableCollectionBaseTrigger(Card card)
+	{
+		if (_cards.Count <= 0)
+			gameObject.GetComponent<Collider2D>().enabled = true;
+	}
+
+	private void DisableCollectionBaseTrigger(Card card)
+	{
+		if (_cards.Count > 0)
+			gameObject.GetComponent<Collider2D>().enabled = false;
+	}
+
+	#region AddCard
+	/// <summary>
+	///		AddCard
+	///			Adds a Card to the List _cards
+	/// </summary>
+	/// <param name="card">The Card Component to be added</param>
+	/// <param name="faceUp">Whether the Card is face up or face down, defaults to true</param>
+	public virtual Card AddCard(Card card, bool faceUp = true)
+	{
+		card.transform.parent = this.transform;
+		card.IsFaceUp = faceUp;
+		_cards.Add(card);
+		PositionCards();
+
+		OnAddCardEvent(card);
+		return card;
 	}
 
 	/// <summary>
@@ -62,34 +125,9 @@ public class CardCollection : MonoBehaviour, ICardCollection, ICardCollectionEve
 		Card card = cardGameObject.GetComponent<Card>();
 		
 		if (card != null)
-		{
-			card.IsFaceUp = faceUp;
-			_cards.Add(card);
-			card.transform.parent = this.transform;
-
-			if (AddCardEvent != null)
-				AddCardEvent(card);
-		}
-
-		return card;
-	}
-
-	/// <summary>
-	///		AddCard
-	///			Adds a Card to the List _cards
-	/// </summary>
-	/// <param name="card">The Card Component to be added</param>
-	/// <param name="faceUp">Whether the Card is face up or face down, defaults to true</param>
-	public virtual Card AddCard(Card card, bool faceUp = true) 
-	{
-		card.transform.parent = this.transform;
-		card.IsFaceUp = faceUp;
-		_cards.Add(card);
-
-		if (AddCardEvent != null)
-			AddCardEvent(card);
-
-		return card;
+			return AddCard(card, faceUp);
+		else
+			return null;
 	}
 
 	/// <summary>
@@ -108,9 +146,9 @@ public class CardCollection : MonoBehaviour, ICardCollection, ICardCollectionEve
 		cardGameObject.transform.parent = this.transform;
 		card.IsFaceUp = faceUp;
 		_cards.Add(card);
+		PositionCards();
 
-		if (AddCardEvent != null)
-			AddCardEvent(card);
+		OnAddCardEvent(card);
 
 		return card;
 	}
@@ -132,12 +170,14 @@ public class CardCollection : MonoBehaviour, ICardCollection, ICardCollectionEve
 		card = cardGameObject.GetComponent<Card>();
 		card.IsFaceUp = faceUp;
 		_cards.Add(card);
+		PositionCards();
 
-		if (AddCardEvent != null)
-			AddCardEvent(card);
+		OnAddCardEvent(card);
 
 		return card;
 	}
+	#endregion
+	#region RemoveCard
 	/// <summary>
 	///		RemoveCard
 	///			Removes a Card from the List _cards
@@ -146,19 +186,20 @@ public class CardCollection : MonoBehaviour, ICardCollection, ICardCollectionEve
 	/// <returns>RemoveCard returns the removed Card if it was in _cards, null otherwise</returns>
 	public virtual Card RemoveCard(GameObject cardGameObject)
 	{
-		Card removeCard;
+		Card removedCard;
 		Card card = cardGameObject.GetComponent<Card>();
 
-		removeCard = _cards.Find(delegate(Card c)
+		removedCard = _cards.Find(delegate(Card c)
 		{
 			return (c.Element == card.Element) ? true : false;
 		});
 
-		if (_cards.Remove(removeCard))
+		if (_cards.Remove(removedCard))
 		{
-			if (RemoveCardEvent != null)
-				RemoveCardEvent(removeCard);
-			return removeCard;
+			PositionCards();
+
+			OnRemoveCardEvent(removedCard);
+			return removedCard;
 		}
 		else
 			return null;
@@ -172,23 +213,25 @@ public class CardCollection : MonoBehaviour, ICardCollection, ICardCollectionEve
 	/// <returns>RemoveCard returns the removed Card if it was in _cards, null otherwise</returns>
 	public virtual Card RemoveCard(Card card) 
 	{
-		Card removeCard;
+		Card removedCard;
 		
-		removeCard = _cards.Find(delegate(Card c)
+		removedCard = _cards.Find(delegate(Card c)
 		{
 			return (c.Element == card.Element) ? true : false;
 		});
 
-		if (_cards.Remove(removeCard))
+		if (_cards.Remove(removedCard))
 		{
-			if (RemoveCardEvent != null)
-				RemoveCardEvent(removeCard);
-			return removeCard;
+			PositionCards();
+
+			OnRemoveCardEvent(removedCard);
+			return removedCard;
 		}
 		else
 			return null;
 	}
-
+	#endregion
+	#region GetCard
 	/// <summary>
 	///		GetCard
 	///			Get a Card of a specific element
@@ -203,9 +246,7 @@ public class CardCollection : MonoBehaviour, ICardCollection, ICardCollectionEve
 		{
 			return (c.Element == element) ? true : false;
 		});
-		
-		if (GetCardEvent != null)
-			GetCardEvent(gotCard);
+		OnGetCardEvent(gotCard);
 		
 		return gotCard;
 	}
@@ -219,8 +260,7 @@ public class CardCollection : MonoBehaviour, ICardCollection, ICardCollectionEve
 		Card gotCard;
 		
 		gotCard = _cards[Random.Range(0, _cards.Count - 1)];
-		if (GetCardEvent != null)
-			GetCardEvent(gotCard);
+		OnGetCardEvent(gotCard);
 		
 		return gotCard;
 	}
@@ -240,11 +280,9 @@ public class CardCollection : MonoBehaviour, ICardCollection, ICardCollectionEve
 		});
 
 		gotCard = eList[Random.Range(0, eList.Count - 1)];
-
-		if (GetCardEvent != null)
-			GetCardEvent(gotCard);
+		OnGetCardEvent(gotCard);
 		
 		return gotCard;
 	}
-
+	#endregion
 }

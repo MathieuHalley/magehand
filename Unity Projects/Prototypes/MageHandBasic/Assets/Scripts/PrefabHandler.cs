@@ -19,11 +19,11 @@ public class PrefabHandler : MonoBehaviour
 	}
 
 	public GameObject defaultPrefab;
-
 	public GameObject airCardPrefab;
 	public GameObject earthCardPrefab;
 	public GameObject fireCardPrefab;
 	public GameObject waterCardPrefab;
+	public GameObject cardPilePrefab;
 
 	// Use this for initialization
 	void Awake()
@@ -62,5 +62,10 @@ public class PrefabHandler : MonoBehaviour
 			default:
 				return defaultPrefab;
 		}
+	}
+
+	public GameObject GetCardPilePrefab()
+	{
+		return cardPilePrefab;
 	}
 }

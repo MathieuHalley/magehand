@@ -50,14 +50,15 @@
      <Compile Include="Assets\Scripts\CardCollection.cs" />
      <Compile Include="Assets\Scripts\CardData.cs" />
      <Compile Include="Assets\Scripts\HandCollection.cs" />
+     <Compile Include="Assets\Scripts\HandManager.cs" />
      <Compile Include="Assets\Scripts\Interfaces\ICardCollection.cs" />
      <Compile Include="Assets\Scripts\Interfaces\ICardCollectionEvents.cs" />
      <Compile Include="Assets\Scripts\Interfaces\ICardData.cs" />
-     <Compile Include="Assets\Scripts\Interfaces\ICardDataEvents.cs" />
-     <Compile Include="Assets\Scripts\Interfaces\IInteractable.cs" />
-     <Compile Include="Assets\Scripts\Interfaces\IMouseInteractionEvents.cs" />
+     <Compile Include="Assets\Scripts\Interfaces\IInputInteractionEvents.cs" />
+     <Compile Include="Assets\Scripts\Interfaces\IObjectInteractionEvents.cs" />
      <Compile Include="Assets\Scripts\PrefabHandler.cs" />
-     <Compile Include="Assets\Scripts\TerrainCollection.cs" />
+     <Compile Include="Assets\Scripts\TerrainCollections.cs" />
+     <Compile Include="Assets\Scripts\TerrainManager.cs" />
  <Reference Include="UnityEngine.UI">
  <HintPath>C:/Program Files/Unity/Editor/Data/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>
  </Reference>

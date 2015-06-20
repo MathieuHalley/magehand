@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class Card : MonoBehaviour, ICardData, ICardDataEvents, IMouseInteractionEvents
+public class Card : MonoBehaviour, ICardData, IInputInteractionEvents, IObjectInteractionEvents
 {
 	[SerializeField]
 	protected Elements _element;
@@ -21,7 +21,7 @@ public class Card : MonoBehaviour, ICardData, ICardDataEvents, IMouseInteraction
 	public GameObject cardMesh;
 
 	#region Events
-	public event System.Action<bool> FlipCardEvent;
+	//	Input Interaction Events
 	public event System.Action<GameObject> MouseDownEvent;
 	public event System.Action<GameObject> MouseDragEvent;
 	public event System.Action<GameObject> MouseEnterEvent;
@@ -29,80 +29,172 @@ public class Card : MonoBehaviour, ICardData, ICardDataEvents, IMouseInteraction
 	public event System.Action<GameObject> MouseOverEvent;
 	public event System.Action<GameObject> MouseUpAsAButtonEvent;
 	public event System.Action<GameObject> MouseUpEvent;
-
-	protected virtual void OnFlipCardEvent(bool faceUp) 
+	//	Object Interaction Events
+	public event System.Action<GameObject, Collider2D> TriggerEnter2DEvent;
+	public event System.Action<GameObject, Collider2D> TriggerExit2DEvent;
+	public event System.Action<GameObject, Collider2D> TriggerStay2DEvent;
+	#endregion
+	#region Input Interaction Messages
+	public void OnMouseDown()
 	{
-		if (FlipCardEvent != null)
-			FlipCardEvent(faceUp);
+		System.Action<GameObject> mDownEvent = MouseDownEvent;
+		Debug.Log("boop");
+		if (mDownEvent != null)
+			mDownEvent(this.gameObject);
 	}
 
-	protected virtual void OnMouseDown()
+	public void OnMouseDrag()
 	{
-		if (MouseDownEvent != null)
-			MouseDownEvent(this.gameObject);
+		System.Action<GameObject> mDragEvent = MouseDragEvent;
+
+		if (mDragEvent != null)
+			mDragEvent(this.gameObject);
 	}
 
-	protected virtual void OnMouseDrag()
+	public void OnMouseEnter()
 	{
-		if (MouseDragEvent != null)
-			MouseDragEvent(this.gameObject);
+		System.Action<GameObject> mEnterEvent = MouseEnterEvent;
+
+		if (mEnterEvent != null)
+			mEnterEvent(this.gameObject);
 	}
 
-	protected virtual void OnMouseEnter()
+	public void OnMouseExit()
 	{
-		if (MouseEnterEvent != null)
-			MouseEnterEvent(this.gameObject);
+		System.Action<GameObject> mExitEvent = MouseExitEvent;
+
+		if (mExitEvent != null)
+			mExitEvent(this.gameObject);
 	}
 
-	protected virtual void OnMouseExit()
+	public void OnMouseOver()
 	{
-		if (MouseExitEvent != null)
-			MouseExitEvent(this.gameObject);
+		System.Action<GameObject> mOverEvent = MouseOverEvent;
+
+		if (mOverEvent != null)
+			mOverEvent(this.gameObject);
 	}
 
-	protected virtual void OnMouseOver()
+	public void OnMouseUpAsAButton()
 	{
-		if (MouseOverEvent != null)
-			MouseOverEvent(this.gameObject);
+		System.Action<GameObject> mUpAsAButtonEvent = MouseUpAsAButtonEvent;
+
+		if (mUpAsAButtonEvent != null)
+			mUpAsAButtonEvent(this.gameObject);
 	}
 
-	protected virtual void OnMouseUpAsAButton()
+	public void OnMouseUp()
 	{
-		if (MouseUpAsAButtonEvent != null)
-			MouseUpAsAButtonEvent(this.gameObject);
-	}
+		System.Action<GameObject> mUpEvent = MouseUpEvent;
 
-	protected virtual void OnMouseUp()
-	{
-		if (MouseUpEvent != null)
-			MouseUpEvent(this.gameObject);
+		if (mUpEvent != null)
+			mUpEvent(this.gameObject);
 	}
 	#endregion
-
-	public void OnEnable()
+	#region Object Interaction Messages
+	public void OnTriggerEnter2D(Collider2D other)
 	{
-		FlipCardEvent += OnFlipCardEvent;
+		System.Action<GameObject, Collider2D> tEnter2DEvent = TriggerEnter2DEvent;
+
+		if (tEnter2DEvent != null)
+			tEnter2DEvent(this.gameObject, other);
 	}
 
-	public void OnDisable()
+	public void OnTriggerExit2D(Collider2D other)
 	{
-		FlipCardEvent -= OnFlipCardEvent;
+		System.Action<GameObject, Collider2D> tExit2DEvent = TriggerExit2DEvent;
+
+		if (tExit2DEvent != null)
+			tExit2DEvent(this.gameObject, other);
 	}
+
+	public void OnTriggerStay2D(Collider2D other)
+	{
+		System.Action<GameObject, Collider2D> tStay2DEvent = TriggerStay2DEvent;
+
+		if (tStay2DEvent != null)
+			tStay2DEvent(this.gameObject, other);
+	}
+	#endregion
 
 	public void FlipCard()
 	{
 		_isFaceUp = !_isFaceUp;
 		cardMesh.transform.Rotate(0, 180, 0);
-		OnFlipCardEvent(_isFaceUp);
 	}
 
 	public static GameObject NewCard(Elements element, bool faceUp = true)
 	{
 		GameObject newCardGameObject;
-		newCardGameObject = Instantiate<GameObject>(PrefabHandler.Instance.GetCardPrefab(element));
+		newCardGameObject = 
+			(GameObject)Instantiate(PrefabHandler.Instance.GetCardPrefab(element),
+			                        Vector3.zero,
+									Quaternion.Euler(0, 0, Random.Range(-1f, 1f)));
+
 		if (faceUp == false)
 			newCardGameObject.GetComponent<Card>().FlipCard();
 
 		return newCardGameObject;
+	}
+
+	public static bool operator ==(Card c1, Card c2)
+	{
+		if ((object)c1 == null || (object)c2 == null)
+			return false;
+
+		if (c1.Element == c2.Element && c1.IsFaceUp == c2.IsFaceUp)
+			return true;
+		else
+			return false;
+	}
+
+	public static bool operator !=(Card c1, Card c2)
+	{
+		if ((object)c1 == null || (object)c2 == null)
+			return true;
+
+		if (c1.Element != c2.Element || c1.IsFaceUp != c2.IsFaceUp)
+			return true;
+		else
+			return false;
+	}
+
+	public bool Equals(Card c)
+	{
+		if ((object)c == null)
+			return false;
+
+		if (_element == c.Element && _isFaceUp == c.IsFaceUp)
+			return true;
+		else
+			return false;
+	}
+
+	public override bool Equals(object o)
+	{
+		Card c;
+
+		if (o == null)
+			return false;
+
+		c = o as Card;
+		if ((object)c == null)
+			return false;
+
+		if (_element == c.Element && _isFaceUp == c.IsFaceUp)
+			return true;
+		else
+			return false;
+	}
+
+	public override int GetHashCode()
+	{
+		int hash = 0;
+		unchecked
+		{
+			hash += 31 * _element.GetHashCode();
+			hash += 31 * _isFaceUp.GetHashCode();
+		}
+		return hash;
 	}
 }
