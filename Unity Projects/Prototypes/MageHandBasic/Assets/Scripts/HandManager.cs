@@ -14,19 +14,23 @@ public class HandManager : MonoBehaviour
 
 	public void OnEnable()
 	{
+		//	Subscribe to all of the MouseDown events
 		handCollection.MouseDownEvent += OnCardMouseDown;
 		handCollection.MouseDragEvent += OnCardMouseDrag;
 		handCollection.MouseUpEvent += OnCardMouseUp;
 
+		//	Subscribe to all of the Trigger#2D events
 		handCollection.TriggerEnter2DEvent += OnCardOverlapEnter;
 	}
 
 	public void OnDisable()
 	{
+		//	Unsubscribe from all of the MouseDown events
 		handCollection.MouseDownEvent -= OnCardMouseDown;
 		handCollection.MouseDragEvent -= OnCardMouseDrag;
 		handCollection.MouseUpEvent -= OnCardMouseUp;
 
+		//	Unsubscribe from all of the Trigger#2D events
 		handCollection.TriggerEnter2DEvent -= OnCardOverlapEnter;
 	}
 
@@ -35,6 +39,7 @@ public class HandManager : MonoBehaviour
 		if (handCollection == null)
 			handCollection = GetComponent<HandCollection>();
 
+		//	Populate the hand with a random collection of cards
 		for (int i = handCollection.Cards.Count; i < initialCardCount; ++i)
 		{
 			handCollection.AddNewRandomCard(initialFaceUp);
@@ -43,12 +48,14 @@ public class HandManager : MonoBehaviour
 		handCollection.PositionCards();
 	}
 
+	//	Subscribed to every card's OnMouseDown event
 	public void OnCardMouseDown(GameObject cardGameObject)
 	{
-		Debug.Log("OnMouseDownEvent " + cardGameObject.name);
 		initPos = cardGameObject.transform.position;
 	}
 
+	//	Subscribed to every card's OnMouseDrag event
+	//	Drags selected card under mouse position
 	public void OnCardMouseDrag(GameObject cardGameObject)
 	{
 		dragged = true;
@@ -59,8 +66,11 @@ public class HandManager : MonoBehaviour
 											Mathf.Abs(Camera.main.transform.position.z)));
 	}
 
+	//	Subscribed to every card's OnMouseUp event
+	//	Transfers card to another collection if the card overlaps it
 	public void OnCardMouseUp(GameObject cardGameObject)
 	{
+		Card removedCard;
 		if (dragged == true && cardTransferAttempt == false)
 		{
 			dragged = false;
@@ -68,11 +78,15 @@ public class HandManager : MonoBehaviour
 		}
 		else if (dragged == true && cardTransferAttempt == true)
 		{
-			//	Occasionally unsubscribes cards without removing them !!!!
+			//	Calls CardCollection.AddCard not TerrainCollection.AddCard and bypasses all of the terrain event subscription code
 			dragged = false;
 			cardTransferAttempt = false;
-			handCollection.RemoveCard(cardGameObject);
-			transferCollection.AddCard(cardGameObject, true);
+			removedCard = handCollection.RemoveCard(cardGameObject);
+			Debug.Log("removedCard = " + removedCard);
+			if (removedCard != null)
+			{
+				transferCollection.AddCard(cardGameObject, true);
+			}
 		}
 		initPos = this.transform.position;
 	}

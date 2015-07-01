@@ -17,25 +17,31 @@ public class TerrainManager : MonoBehaviour
 
 	public void OnEnable()
 	{
+		//	Subscribe to all of the MouseDown events
 		tCardCollections.MouseDownEvent += OnCardMouseDown;
 		tCardCollections.MouseDragEvent += OnCardMouseDrag;
 		tCardCollections.MouseUpEvent += OnCardMouseUp;
 
+		//	Subscribe to all of the Add/Remove events
 		tCardCollections.AddCardEvent += OnAddTerrainCard;
 		tCardCollections.RemoveCardEvent += OnRemoveTerrainCard;
 
+		//	Subscribe to all of the Trigger#2D events
 		tCardCollections.TriggerEnter2DEvent += OnCardOverlapEnter;
 	}
 
 	public void OnDisable()
 	{
+		//	Unsubscribe from all of the MouseDown events
 		tCardCollections.MouseDownEvent -= OnCardMouseDown;
 		tCardCollections.MouseDragEvent -= OnCardMouseDrag;
 		tCardCollections.MouseUpEvent -= OnCardMouseUp;
 
+		//	Unsubscribe from all of the Add/Remove events
 		tCardCollections.AddCardEvent -= OnAddTerrainCard;
 		tCardCollections.RemoveCardEvent -= OnRemoveTerrainCard;
 
+		//	Unsubscribe from all of the Trigger#2D events
 		tCardCollections.TriggerEnter2DEvent -= OnCardOverlapEnter;
 	}
 
@@ -67,6 +73,7 @@ public class TerrainManager : MonoBehaviour
 		tCardCollections.PositionCards();
 	}
 
+	//	Subscribed to every card's OnMouseDown event
 	public void OnCardMouseDown(GameObject cardGameObject) 
 	{
 		activeCardCollection =
@@ -75,6 +82,8 @@ public class TerrainManager : MonoBehaviour
 		initPos = cardGameObject.transform.position;
 	}
 
+	//	Subscribed to every card's OnMouseDrag event
+	//	Drags selected card under mouse position
 	public void OnCardMouseDrag(GameObject cardGameObject)
 	{
 		dragged = true;
@@ -85,8 +94,12 @@ public class TerrainManager : MonoBehaviour
 											Mathf.Abs(Camera.main.transform.position.z)));
 	}
 
+	//	Subscribed to every card's OnMouseUp event
+	//	Transfers card to another collection if the card overlaps it
 	public void OnCardMouseUp(GameObject cardGameObject) 
 	{
+		Card removedCard;
+
 		if (dragged == true && cardTransferAttempt == false)
 		{
 			dragged = false;
@@ -96,8 +109,9 @@ public class TerrainManager : MonoBehaviour
 		{
 			dragged = false;
 			cardTransferAttempt = false;
-			tCardCollections.RemoveCard(cardGameObject);
-			transferCollection.AddCard(cardGameObject, true);
+			removedCard = tCardCollections.RemoveCard(cardGameObject);
+			if (removedCard != null)
+				transferCollection.AddCard(cardGameObject, true);
 		}
 
 		initPos = this.transform.position;
@@ -110,6 +124,8 @@ public class TerrainManager : MonoBehaviour
 		Debug.Log(card.name + " removed");
 	}
 
+	//	Subscribed to every card's OverlapEnter event
+	//	On card overlap the selected card is added to the cardcollection that its overlapping
 	public void OnCardOverlapEnter(GameObject cardGameObject, Collider2D other) 
 	{
 		CardCollection cCollection;

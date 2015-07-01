@@ -123,11 +123,17 @@ public class CardCollection : MonoBehaviour, ICardCollection, ICardCollectionEve
 	public virtual Card AddCard(GameObject cardGameObject, bool faceUp = true)
 	{
 		Card card = cardGameObject.GetComponent<Card>();
-		
+
+		Debug.Log("Terrain AddCard " + cardGameObject.name + " card = " + card);
 		if (card != null)
+		{
 			return AddCard(card, faceUp);
+		}
 		else
+		{
+			Debug.Log("AddCard " + cardGameObject.name + " card is null");
 			return null;
+		}
 	}
 
 	/// <summary>
@@ -194,15 +200,17 @@ public class CardCollection : MonoBehaviour, ICardCollection, ICardCollectionEve
 			return (c.Element == card.Element) ? true : false;
 		});
 
-		if (_cards.Remove(removedCard))
+		if (removedCard != null)
 		{
-			PositionCards();
+			if (_cards.Remove(removedCard))
+			{
+				PositionCards();
 
-			OnRemoveCardEvent(removedCard);
-			return removedCard;
+				OnRemoveCardEvent(removedCard);
+				return removedCard;
+			}
 		}
-		else
-			return null;
+		return null;
 	}
 
 	/// <summary>
@@ -219,16 +227,17 @@ public class CardCollection : MonoBehaviour, ICardCollection, ICardCollectionEve
 		{
 			return (c.Element == card.Element) ? true : false;
 		});
-
-		if (_cards.Remove(removedCard))
+		if (removedCard != null)
 		{
-			PositionCards();
+			if (_cards.Remove(removedCard))
+			{
+				PositionCards();
 
-			OnRemoveCardEvent(removedCard);
-			return removedCard;
+				OnRemoveCardEvent(removedCard);
+				return removedCard;
+			}
 		}
-		else
-			return null;
+		return null;
 	}
 	#endregion
 	#region GetCard

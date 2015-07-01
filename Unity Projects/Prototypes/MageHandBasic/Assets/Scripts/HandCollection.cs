@@ -1,8 +1,10 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class HandCollection : CardCollection, IInputInteractionEvents, IObjectInteractionEvents
 {
+	public List<Card> subscribedCards;
 	#region Events
 	//	Input Interaction Events
 	public event System.Action<GameObject> MouseDownEvent;
@@ -101,6 +103,9 @@ public class HandCollection : CardCollection, IInputInteractionEvents, IObjectIn
 	#endregion
 	#endregion
 
+	/// <summary>
+	///		PositionCards - Position all of the cards within the hand
+	/// </summary>
 	public override void PositionCards()
 	{
 		for (int i = 0; i < Cards.Count; ++i)
@@ -183,8 +188,12 @@ public class HandCollection : CardCollection, IInputInteractionEvents, IObjectIn
 	public override Card RemoveCard(GameObject cardGameObject)
 	{
 		Card removedCard = base.RemoveCard(cardGameObject);
-		PositionCards();
-		UnsubscribeFromInteractionEvents(removedCard);
+
+		if (removedCard != null)
+		{
+			PositionCards();
+			UnsubscribeFromInteractionEvents(removedCard);
+		}
 
 		return removedCard;
 	}
@@ -197,15 +206,24 @@ public class HandCollection : CardCollection, IInputInteractionEvents, IObjectIn
 	public override Card RemoveCard(Card card)
 	{
 		Card removedCard = base.RemoveCard(card);
-		PositionCards();
-		UnsubscribeFromInteractionEvents(removedCard);
+
+		if (removedCard != null)
+		{
+			PositionCards();
+			UnsubscribeFromInteractionEvents(removedCard);
+		}
 
 		return removedCard;
 	}
 
+	/// <summary>
+	///		SubscribeToInteractionEvents - Subscribe to all of a Card's interaction events
+	/// </summary>
+	/// <param name="card">The Card being subscribed to</param>
 	public void SubscribeToInteractionEvents(Card card)
 	{
-		//Debug.Log("SubscribeToInteractionEvents " + card.name);
+		subscribedCards.Add(card);
+		Debug.Log("Hand SubscribeToInteractionEvents " + card.name);
 		//Input Interaction Events
 		card.MouseDownEvent += OnMouseDownEvent;
 		card.MouseDragEvent += OnMouseDragEvent;
@@ -220,9 +238,14 @@ public class HandCollection : CardCollection, IInputInteractionEvents, IObjectIn
 		card.TriggerStay2DEvent += OnTriggerStay2DEvent;
 	}
 
+	/// <summary>
+	///		UnsubscribeFromInteractionEvents - Unsubscribe from all of a Card's interaction events
+	/// </summary>
+	/// <param name="card">The Card being unsubscribed from</param>
 	public void UnsubscribeFromInteractionEvents(Card card)
 	{
-		//Debug.Log("UnsubscribeFromInteractionEvents " + card.gameObject.name);
+		subscribedCards.Remove(card);
+		Debug.Log("Hand UnsubscribeFromInteractionEvents " + card.gameObject.name);
 		//Input Interaction Events
 		card.MouseDownEvent -= OnMouseDownEvent;
 		card.MouseDragEvent -= OnMouseDragEvent;

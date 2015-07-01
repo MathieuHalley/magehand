@@ -7,6 +7,7 @@ public enum TerrainCardsSubset { Default, TopAll, TopFaceUp, TopFaceDown }
 public class TerrainCollections : MonoBehaviour, IInputInteractionEvents, ICardCollectionEvents, IObjectInteractionEvents
 {
 	public List<CardCollection> terrainCardPiles;
+	public List<Card> subscribedCards;
 	public List<Card> Cards { get { return GetTerrainCards(TerrainCardsSubset.Default); } }
 	public List<Card> TopCards { get { return GetTerrainCards(TerrainCardsSubset.TopAll); } }
 	public List<Card> FaceUpCards { get { return GetTerrainCards(TerrainCardsSubset.TopFaceUp); } }
@@ -275,6 +276,9 @@ public class TerrainCollections : MonoBehaviour, IInputInteractionEvents, ICardC
 			return null;
 	}
 
+	/// <summary>
+	///		PositionCards - Positions the terrain's cardCollections and the cards within them
+	/// </summary>
 	public void PositionCards()
 	{
 		int cardPileCount = terrainCardPiles.Count;
@@ -719,12 +723,13 @@ public class TerrainCollections : MonoBehaviour, IInputInteractionEvents, ICardC
 	}
 	#endregion
 	/// <summary>
-	///		SubscribeToInteractionEvents - Subscribe to all of a Card's input interaction events
+	///		SubscribeToInteractionEvents - Subscribe to all of a Card's interaction events
 	/// </summary>
 	/// <param name="card">The Card being subscribed to</param>
 	private void SubscribeToInteractionEvents(Card card)
 	{
-		//Debug.Log("SubscribeToInteractionEvents " + card.gameObject.name);
+		subscribedCards.Add(card);
+		Debug.Log("Terrain SubscribeToInteractionEvents " + card.gameObject.name);
 		//Input Interaction Events
 		card.MouseDownEvent += OnMouseDownEvent;
 		card.MouseDragEvent += OnMouseDragEvent;
@@ -740,12 +745,13 @@ public class TerrainCollections : MonoBehaviour, IInputInteractionEvents, ICardC
 	}
 
 	/// <summary>
-	///		UnsubscribeFromInteractionEvents - Unsubscribe from all of a Card's input interaction events
+	///		UnsubscribeFromInteractionEvents - Unsubscribe from all of a Card's interaction events
 	/// </summary>
 	/// <param name="card">The Card being unsubscribed from</param>
 	private void UnsubscribeFromInteractionEvents(Card card)
 	{
-		//Debug.Log("UnsubscribeFromInteractionEvents " + card.gameObject.name);
+		subscribedCards.Remove(card);
+		Debug.Log("Terrain UnsubscribeFromInteractionEvents " + card.gameObject.name);
 		//Input Interaction Events
 		card.MouseDownEvent -= OnMouseDownEvent;
 		card.MouseDragEvent -= OnMouseDragEvent;

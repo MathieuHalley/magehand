@@ -35,10 +35,11 @@ public class Card : MonoBehaviour, ICardData, IInputInteractionEvents, IObjectIn
 	public event System.Action<GameObject, Collider2D> TriggerStay2DEvent;
 	#endregion
 	#region Input Interaction Messages
+
 	public void OnMouseDown()
 	{
 		System.Action<GameObject> mDownEvent = MouseDownEvent;
-		Debug.Log("boop");
+
 		if (mDownEvent != null)
 			mDownEvent(this.gameObject);
 	}
