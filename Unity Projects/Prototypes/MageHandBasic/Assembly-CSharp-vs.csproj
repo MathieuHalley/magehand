@@ -46,19 +46,18 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
-     <Compile Include="Assets\Scripts\Card.cs" />
-     <Compile Include="Assets\Scripts\CardCollection.cs" />
-     <Compile Include="Assets\Scripts\CardData.cs" />
-     <Compile Include="Assets\Scripts\HandCollection.cs" />
-     <Compile Include="Assets\Scripts\HandManager.cs" />
-     <Compile Include="Assets\Scripts\Interfaces\ICardCollection.cs" />
-     <Compile Include="Assets\Scripts\Interfaces\ICardCollectionEvents.cs" />
-     <Compile Include="Assets\Scripts\Interfaces\ICardData.cs" />
-     <Compile Include="Assets\Scripts\Interfaces\IInputInteractionEvents.cs" />
-     <Compile Include="Assets\Scripts\Interfaces\IObjectInteractionEvents.cs" />
-     <Compile Include="Assets\Scripts\PrefabHandler.cs" />
-     <Compile Include="Assets\Scripts\TerrainCollections.cs" />
-     <Compile Include="Assets\Scripts\TerrainManager.cs" />
+     <Compile Include="Assets\Scripts\GameManager.cs" />
+     <Compile Include="Assets\Scripts\Player.cs" />
+     <Compile Include="Assets\Scripts\Structs\Card.cs" />
+     <Compile Include="Assets\Scripts\Structs\CardCollection.cs" />
+     <Compile Include="Assets\Scripts\TerrainCards.cs" />
+     <Compile Include="Assets\Scripts\Turn Phases\AttackPhase.cs" />
+     <Compile Include="Assets\Scripts\Turn Phases\DoubleDownPhase.cs" />
+     <Compile Include="Assets\Scripts\Turn Phases\FirstCardPhase.cs" />
+     <Compile Include="Assets\Scripts\Turn Phases\SecondCardPhase.cs" />
+     <Compile Include="Assets\Scripts\Turn Phases\TerrainDrawPhase.cs" />
+     <Compile Include="Assets\Scripts\TurnPhase.cs" />
+     <Compile Include="Assets\Scripts\TurnPhaseFSM.cs" />
  <Reference Include="UnityEngine.UI">
  <HintPath>C:/Program Files/Unity/Editor/Data/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>
  </Reference>
