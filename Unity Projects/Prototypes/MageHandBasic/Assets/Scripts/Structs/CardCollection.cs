@@ -4,6 +4,9 @@ using System.Collections.Generic;
 
 public class CardCollection : System.Object
 {
+	public static System.Converter<CardSuit, Card> ConvertCardSuitToCard;
+	public static System.Converter<Card, CardSuit> ConvertCardToCardSuit;
+
 	public List<Card> cards;
 	public bool AddCardAllowed
 	{
@@ -16,6 +19,14 @@ public class CardCollection : System.Object
 		private set;
 	}
 
+	static CardCollection()
+	{
+		ConvertCardSuitToCard = 
+			new System.Converter<CardSuit, Card>(Card.ConvertCardSuitToCard);
+		ConvertCardToCardSuit = 
+			new System.Converter<Card, CardSuit>(Card.ConvertCardToCardSuit);
+	}
+
 	public CardCollection()
 	{
 		AddCardAllowed = true;
@@ -24,14 +35,12 @@ public class CardCollection : System.Object
 	}
 
 	public CardCollection( 
-		List<CardSuit> cardList, 
+		List<CardSuit> cardSuitList, 
 		bool isAddCardAllowed = true, 
 		bool isRemoveCardAllowed = true )
 	{
-		System.Converter<CardSuit, Card> convert;
-		convert = new System.Converter<CardSuit, Card>(Card.CardSuitToCardConversion);
-		cards = new List<Card>(cardList.Count);
-		cards = cardList.ConvertAll<Card>(convert);
+		cards = new List<Card>(cardSuitList.Count);
+		cards = cardSuitList.ConvertAll<Card>(ConvertCardSuitToCard);
 
 		AddCardAllowed = true;
 		RemoveCardAllowed = true;
@@ -66,7 +75,9 @@ public class CardCollection : System.Object
 			return false;
 	}
 
-	public void SetAddRemovePermission( bool isAddCardAllowed, bool isRemoveCardAllowed )
+	public void SetAddRemovePermission(
+		bool isAddCardAllowed, 
+		bool isRemoveCardAllowed )
 	{
 		AddCardAllowed = ( isAddCardAllowed ) ? true : false;
 		RemoveCardAllowed = ( isRemoveCardAllowed ) ? true : false;
@@ -78,18 +89,29 @@ public class CardCollection : System.Object
 		return ( cards.Contains((Card)c.opposedSuit) ) ? true : false;
 	}
 
-	//	Does this CardCollection contain the opposed suits for any of this 
-	//	CardCollection's cards
-	public bool ContainsAnyOpposedCards( CardCollection cc )
+	//	Does this CardCollection contain all of this CardCollection's opposed suits
+	public bool ContainsAllOpposedCards( CardCollection cc )
 	{
-		int opposedCards = 0;
+		if ( cc.cards.Count < cards.Count )
+			return false;
 
 		for ( int i = 0; i < cards.Count; ++i )
 		{
+			if ( !cc.ContainsOpposedCard(cards[i]) )
+				return false;
+		}
+		return true;
+	}
+
+	//	Does this CardCollection contain all of this CardCollection's opposed suits
+	public bool ContainsAnyOpposedCards(CardCollection cc)
+	{
+		for ( int i = 0; i < cards.Count; ++i )
+		{
 			if ( cc.ContainsOpposedCard(cards[i]) )
-				++opposedCards;
+				return true;
 		}
 
-		return ( opposedCards > 0 ) ? true : false;
+		return false;
 	}
 }

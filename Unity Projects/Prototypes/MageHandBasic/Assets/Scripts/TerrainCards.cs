@@ -15,12 +15,11 @@ public class TerrainCards : MonoBehaviour
 		int suitCount;
 		List<CardSuit> tempCards;
 
-		cardToCardSuit = new System.Converter<Card, CardSuit>(Card.CardToCardSuitConversion);
-
 		//	The number of cards of each suit that will appear in the visibleTerrain
 		suitCount = (int)(GameManager.Instance.initTerrainCardCount * 0.25f);
 
-		tempCards = new List<CardSuit>(GameManager.Instance.initTerrainCardCount);
+		tempCards = 
+			new List<CardSuit>(GameManager.Instance.initTerrainCardCount);
 
 		//	Add and then shuffle an evenly distributed list of cards 
 		//	to the visibleTerrain
@@ -34,11 +33,15 @@ public class TerrainCards : MonoBehaviour
 
 		tempCards = GameManager.Shuffle<CardSuit>(tempCards);
 		visibleTerrain = new CardCollection(tempCards);
-		visibleTerrainCardSuits = visibleTerrain.cards.ConvertAll<CardSuit>(cardToCardSuit);
+		visibleTerrainCardSuits =
+			visibleTerrain.cards
+			.ConvertAll<CardSuit>(CardCollection.ConvertCardToCardSuit);
 	}
 
 	public void Update()
 	{
-		visibleTerrainCardSuits = visibleTerrain.cards.ConvertAll<CardSuit>(cardToCardSuit);
+		visibleTerrainCardSuits = 
+			visibleTerrain.cards
+			.ConvertAll<CardSuit>(CardCollection.ConvertCardToCardSuit);
 	}
 }

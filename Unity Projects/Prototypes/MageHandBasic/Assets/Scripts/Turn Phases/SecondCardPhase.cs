@@ -2,7 +2,7 @@
 using System.Collections;
 
 
-public class SecondCardPhase : TurnPhase
+public class SecondCardPhase : PlayPhase
 {
 	/*
 	 * 3.	Second Card Phase
@@ -13,41 +13,37 @@ public class SecondCardPhase : TurnPhase
 	 *	in the First Card phase.
 	 */
 
-	private bool isCardPlayedFaceUp;
-	public int numCardsDrawn;
+	private bool playCardFaceUp;
 
 	public override void OnEnable()
 	{
+		phaseName = "Second Card Phase";
 		base.OnEnable();
-		if ( player1.playSpace.cards.Count == 0 || player2.playSpace.cards.Count == 0 )
-		{
-			TurnPhaseFSM.Instance.PushPhase(GetComponent<FirstCardPhase>());
-		}
-
-		Debug.Log("Second Card Play Phase\nPlayer " + initPlayerNum + "'s turn first.");
-
-		numCardsDrawn = 0;
-		ActivePlayerTurnStart();
 	}
 
 	public void Update()
 	{
 
-		isCardPlayedFaceUp = ( initPlayerTurn ) ? false : true;
+		playCardFaceUp = ( initPlayerTurn ) ? false : true;
 
 		//	Draw a card. Face down if you're the initial player, 
 		//	face up if you're the other player
-		if ( !endPhase && PlayCard(isCardPlayedFaceUp) )
+		//	Draw a card
+		if ( !endPhase && numCardsDrawn < 2 )
 		{
-			++numCardsDrawn;
-			if ( initPlayerTurn )
+			if ( PlayCard(playCardFaceUp) )
 			{
-				Debug.Log("Second Card Play Phase\nPlayer " + otherPlayerNum + "'s turn.");
+				++numCardsDrawn;
+				if ( initPlayerTurn )
+				{
+					Debug.Log(phaseName + "\nPlayer " +
+							  otherPlayerNum + "'s turn.");
 
-				initPlayerTurn = false;
-				activePlayer = GameManager.Instance.SwitchActivePlayer();
+					initPlayerTurn = false;
 
-				ActivePlayerTurnStart();
+					activePlayer = GameManager.Instance.SwitchActivePlayer();
+					ActivePlayerTurnStart();
+				}
 			}
 		}
 

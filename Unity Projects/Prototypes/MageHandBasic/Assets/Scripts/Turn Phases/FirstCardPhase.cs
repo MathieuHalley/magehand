@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class FirstCardPhase : TurnPhase
+public class FirstCardPhase : PlayPhase
 {
 	/*
 	 * 2.	First Card
@@ -14,16 +14,11 @@ public class FirstCardPhase : TurnPhase
 	 *		they must Surrender the Turn.
 	 */
 	private bool handIsEmpty;
-	public int numCardsDrawn;
 
 	public override void OnEnable()
 	{
+		phaseName = "First Card Phase";
 		base.OnEnable();
-		Debug.Log("First Card Play Phase\nPlayer " + initPlayerNum + "'s turn first.");
-
-		endPhase = false;
-		numCardsDrawn = 0;
-		ActivePlayerTurnStart();
 	}
 
 	public void Update()
@@ -31,24 +26,29 @@ public class FirstCardPhase : TurnPhase
 		//	If it's the other player's turn and they don't have any of the 
 		//	initial player's playSpace cards in their hand, then they have to 
 		//	surrender the turn
-		if ( !initPlayerTurn && !activePlayer.hand.ContainsAnyOpposedCards(initPlayer.playSpace) )
+		if ( !initPlayerTurn && 
+			 !activePlayer.hand.ContainsAnyOpposedCards(initPlayer.playSpace) )
 		{
 			GameManager.Instance.curTurnSurrendered = true;
 			endPhase = true;
 		}
 
 		//	Draw a card
-		if ( !endPhase && PlayCard() )
+		if ( !endPhase && numCardsDrawn < 2 )
 		{
-			++numCardsDrawn;
-			if ( initPlayerTurn )
+			if ( PlayCard() )
 			{
-				Debug.Log("First Card Play Phase\nPlayer " + otherPlayerNum + "'s turn.");
+				++numCardsDrawn;
+				if ( initPlayerTurn )
+				{
+					Debug.Log(phaseName + "\nPlayer " + 
+						      otherPlayerNum + "'s turn.");
 
-				initPlayerTurn = false;
+					initPlayerTurn = false;
 
-				activePlayer = GameManager.Instance.SwitchActivePlayer();
-				ActivePlayerTurnStart();
+					activePlayer = GameManager.Instance.SwitchActivePlayer();
+					ActivePlayerTurnStart();
+				}
 			}
 		}
 

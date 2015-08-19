@@ -16,6 +16,7 @@ public class GameManager : MonoBehaviour
 
 	public int curTurn;
 	public bool curTurnSurrendered;
+	public bool curTurnCanDoubleDown;
 	public bool curTurnIsSuccessfulAttack;
 	public TerrainCards terrain;
 	public int initPlayerHandSize;

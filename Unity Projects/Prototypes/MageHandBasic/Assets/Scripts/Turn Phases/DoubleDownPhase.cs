@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class DoubleDownPhase : TurnPhase
+public class DoubleDownPhase : PlayPhase
 {
 	/*
 	 * 5.	Double Down (optional; only after an Unsuccessful Attack)
@@ -19,15 +19,10 @@ public class DoubleDownPhase : TurnPhase
 	 * 	 
 	 */
 
-	public int numCardsDrawn;
-
 	public override void OnEnable()
 	{
+		phaseName = "Double Down Phase";
 		base.OnEnable();
-		Debug.Log("Double Down Phase.");
-
-		numCardsDrawn = 0;
-		ActivePlayerTurnStart();
 	}
 
 	public void Update()
@@ -35,26 +30,29 @@ public class DoubleDownPhase : TurnPhase
 		//	If it's the other player's turn and they don't have any of the 
 		//	initial player's playSpace cards in their hand, then they have to 
 		//	surrender the turn
-		if ( !initPlayerTurn && !activePlayer.hand.ContainsAnyOpposedCards(initPlayer.playSpace) )
+		if ( !initPlayerTurn && 
+			 !activePlayer.hand.ContainsAnyOpposedCards(initPlayer.playSpace) )
 		{
 			GameManager.Instance.curTurnSurrendered = true;
 			endPhase = true;
 		}
 
 		//	Draw a card
-		if ( !endPhase && PlayCard() )
+		if ( !endPhase && numCardsDrawn < 2 )
 		{
-			++numCardsDrawn;
-
-			if ( initPlayerTurn && numCardsDrawn >= 2 )
+			if ( PlayCard() )
 			{
-				Debug.Log("Double Down Phase\nPlayer " + otherPlayerNum + "'s turn.");
+				++numCardsDrawn;
+				if ( initPlayerTurn && numCardsDrawn > 2 )
+				{
+					Debug.Log(phaseName + "\nPlayer " +
+							  otherPlayerNum + "'s turn.");
 
-				initPlayerTurn = false;
+					initPlayerTurn = false;
 
-				activePlayer = GameManager.Instance.SwitchActivePlayer();
-
-				ActivePlayerTurnStart();
+					activePlayer = GameManager.Instance.SwitchActivePlayer();
+					ActivePlayerTurnStart();
+				}
 			}
 		}
 
@@ -78,7 +76,6 @@ public class DoubleDownPhase : TurnPhase
 			if ( endPhase == true )
 			{
 				Debug.Log("Double Down Phase Ended");
-				GameManager.Instance.curTurnIsSuccessfulAttack = IsSuccessfulAttack();
 				EndPhase();
 			}
 		}

@@ -4,6 +4,8 @@ using System.Collections.Generic;
 
 public class TurnPhase : MonoBehaviour
 {
+	public string phaseName;
+	
 	protected Player player1;
 	protected Player player2;
 	protected Player initPlayer;
@@ -14,9 +16,8 @@ public class TurnPhase : MonoBehaviour
 	protected int p2InitCardCount;
 	protected int initPlayerNum;
 	protected int otherPlayerNum;
-	protected bool endPhase;
 	protected bool initPlayerTurn;
-
+	protected bool endPhase;
 
 	public virtual void OnEnable()
 	{
@@ -50,6 +51,7 @@ public class TurnPhase : MonoBehaviour
 
 	protected void EndPhase()
 	{
+		Debug.Log(phaseName + " has ended");
 		this.enabled = false;
 	}
 
@@ -61,8 +63,6 @@ public class TurnPhase : MonoBehaviour
 	{
 		bool success = false;
 		Card card = new Card(cs);
-
-		Debug.Log("DrawCard(suit: " + cs.ToString() + ", from: " + from.ToString() + ", to: " + to.ToString() + ", faceUp: " + faceUp);
 
 		//	If the terrain contains the requested card suit, add one to the
 		//	to collection and remove one from the from collection
@@ -98,18 +98,18 @@ public class TurnPhase : MonoBehaviour
 			success = false;
 		}
 
-		if ( success )
-		{
-			Debug.Log("Draw Card " + card.ToString() + ": Success");
-			return true;
-		}
-		else
-		{
-			Debug.Log("Draw Card " + card.ToString() + ": Failed");
-			return false;
-		}
+		Debug.Log("Suit to draw: " + cs.ToString() + ", (from: " 
+			+ from.ToString() + ", to: " + to.ToString() + ", faceUp: " 
+			+ faceUp + "\nDrawCard: " + ((success) ? "Success" : "Failed"));
+
+		return success;
 	}
 
+	/// <summary>
+	///		DrawCardInput
+	/// </summary>
+	/// <param name="suit"></param>
+	/// <returns></returns>
 	protected bool DrawCardInput( out CardSuit suit )
 	{
 		bool drawCard = false;
@@ -140,6 +140,9 @@ public class TurnPhase : MonoBehaviour
 		return drawCard;
 	}
 
+	/// <summary>
+	/// 
+	/// </summary>
 	protected void ResetAddRemovePermissions()
 	{
 		player1.ResetAllAddRemovePermissions();
@@ -148,6 +151,11 @@ public class TurnPhase : MonoBehaviour
 		terrain.visibleTerrain.SetAddRemovePermission(false, false);
 	}
 
+	/// <summary>
+	/// 
+	/// </summary>
+	/// <param name="playFaceUp"></param>
+	/// <returns></returns>
 	protected bool PlayCard( bool playFaceUp = true )
 	{
 		CardSuit suitToDraw;
@@ -155,7 +163,6 @@ public class TurnPhase : MonoBehaviour
 
 		if ( DrawCardInput(out suitToDraw) )
 		{
-			Debug.Log("Suit to draw: " + suitToDraw.ToString());
 			cardWasDrawn =
 				DrawCard(suitToDraw,
 						 activePlayer.hand,
@@ -166,34 +173,12 @@ public class TurnPhase : MonoBehaviour
 		return cardWasDrawn;
 	}
 
-	protected bool IsSuccessfulAttack()
-	{
-		bool success = true;
-
-		CardCollection initPSpace;
-		CardCollection otherPSpace;
-
-		initPSpace = 
-			( initPlayerNum == 1 ) ? player1.playSpace : player2.playSpace;
-		otherPSpace = 
-			( initPlayerNum == 1 ) ? player2.playSpace : player1.playSpace;
-
-
-		for( int i = 0; i < initPSpace.cards.Count; ++i )
-		{
-			if ( !otherPSpace.ContainsOpposedCard(initPSpace.cards[i]) )
-			{
-				success = false;
-				break;
-			}
-		}
-
-		return success;
-	}
-
+	/// <summary>
+	/// 
+	/// </summary>
 	protected virtual void ActivePlayerTurnStart()
 	{
-		Debug.Log("Turn Start");
+		Debug.Log(phaseName + "\nPlayer " + (( initPlayerTurn ) ? initPlayerNum : otherPlayerNum) + "'s turn.");
 		ResetAddRemovePermissions();
 	}
 }

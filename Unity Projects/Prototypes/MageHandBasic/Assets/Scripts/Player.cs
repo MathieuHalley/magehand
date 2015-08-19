@@ -14,14 +14,10 @@ public class Player : MonoBehaviour
 	public List<CardSuit> playSpaceCardSuits;
 	public List<CardSuit> scorePileCardSuits;
 
-	private System.Converter<Card, CardSuit> cardToCardSuit;
-
 	public void Start()
 	{
 		int numCardSuits;
 		List<CardSuit> tempCards;
-
-		cardToCardSuit = new System.Converter<Card, CardSuit>(Card.CardToCardSuitConversion);
 
 		hand = new CardCollection();
 		playSpace = new CardCollection();
@@ -49,9 +45,15 @@ public class Player : MonoBehaviour
 
 	private void UpdateCardSuitSummaries()
 	{
-		handCardSuits = hand.cards.ConvertAll<CardSuit>(cardToCardSuit);
-		playSpaceCardSuits = playSpace.cards.ConvertAll<CardSuit>(cardToCardSuit);
-		scorePileCardSuits = scorePile.cards.ConvertAll<CardSuit>(cardToCardSuit);
+		handCardSuits = 
+			hand.cards
+			.ConvertAll<CardSuit>(CardCollection.ConvertCardToCardSuit);
+		playSpaceCardSuits = 
+			playSpace.cards
+			.ConvertAll<CardSuit>(CardCollection.ConvertCardToCardSuit);
+		scorePileCardSuits = 
+			scorePile.cards
+			.ConvertAll<CardSuit>(CardCollection.ConvertCardToCardSuit);
 	}
 
 	public void ResetAllAddRemovePermissions()

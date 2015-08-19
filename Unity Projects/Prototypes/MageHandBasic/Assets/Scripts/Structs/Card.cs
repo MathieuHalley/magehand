@@ -39,12 +39,12 @@ public class Card : System.Object, System.IEquatable<Card>
 	}
 
 	//	CardSuit enum to Card conversion
-	public static Card CardSuitToCardConversion(CardSuit cs)
+	public static Card ConvertCardSuitToCard(CardSuit cs)
 	{
 		return new Card(cs);
 	}
 	//	Card to CardSuit enum conversion
-	public static CardSuit CardToCardSuitConversion(Card c)
+	public static CardSuit ConvertCardToCardSuit(Card c)
 	{
 		return c.suit;
 	}
@@ -52,13 +52,13 @@ public class Card : System.Object, System.IEquatable<Card>
 	//	CardSuit to Card explicit conversion operator
 	public static explicit operator Card(CardSuit cs)
 	{
-		return CardSuitToCardConversion(cs);
+		return ConvertCardSuitToCard(cs);
 	}
 
 	//	Card to CardSuit explicit conversion operator
 	public static explicit operator CardSuit(Card c)
 	{
-		return CardToCardSuitConversion(c);
+		return ConvertCardToCardSuit(c);
 	}
 
 	//	Card Card equality operator
